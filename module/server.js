@@ -8,6 +8,100 @@
 const http = require('http');
 
 /**
+ * bejelentkező űrlap
+ */
+const loginContent = `
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Oldal</title>
+    </head>
+    <body>
+        <h2>Belépés</h2>
+        <p>kérem adja meg az adatait a belépéshez</p>
+        <form method="post">
+            <label>Email</label>
+            <br>
+            <input type="email" name="email" >
+            <br>
+            <label>Password</label>
+            <br>
+            <input type="password" name="password" >
+            <button>Belépés</button>
+        </form>
+    </body>
+    
+</html>
+
+`;
+
+/**
+ * http kérések feldolgézása és a megfelelő válasz küldése a kliens számára.
+ */
+class HTTPResponse {
+
+    /**
+     * beállítja az elfogadott url-ek listáját
+     * @param req - kérés adatai
+     * @param res - a válasz adó objektum
+     */
+    constructor(req, res) {
+        this.req = req;
+        this.res = res;
+
+        this.routes = {
+            '/': 'index',
+            '/login': 'login',
+            '/logout': 'logout'
+        };
+
+        this.sendResponse();
+    }
+
+    /**
+     * az url alapján eldönti, hogy milyen választ küldjön a kliensnek
+     */
+    sendResponse() {
+        let page = this.routes[this.req.url],
+            content = '';
+
+        switch(page) {
+            case 'index':
+                content = 'Hello in Home!';
+                break;
+            case 'login':
+                content = loginContent;
+                break;
+            case 'logout':
+                content = 'Logout. bye bye!';
+                break;
+            default:
+                return this.send404();
+        }
+
+        this.res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(content),
+            'Content-Type': 'text/html'
+        });
+        this.res.end(content);
+    }
+
+    /**
+     * 404 hiba üzenet küldése
+     */
+    send404() {
+        let body = `Az oldal nem található!`;
+        this.res.writeHead(404, {
+           'Content-Length': Buffer.byteLength(body),
+           'Content-Type': 'text/plain'
+        });
+
+        this.res.end(body);
+    }
+
+}
+
+/**
  * server osztály a keresések és válaszok feldolgozására
  */
 class Server {
@@ -54,7 +148,8 @@ class Server {
      * @param res=> Response - a válaszadáshoz szükséges objektum
      */
     response(req, res) {
-        res.end('hello world. asdf jklé. majom');
+        console.log(`fontosabb requestek:  metódus: ${req.method}, url: ${req.url}, request lekérés időpontja: ${new Date()}, headers: ${req.cookie}`);
+        new HTTPResponse(req, res);
     }
 
     /**
