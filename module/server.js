@@ -6,6 +6,8 @@
  * a szükséges függőségek beolvasása
  */
 const http = require('http');
+const zlib = require('zlib');
+const Readable = require('stream').Readable;
 
 /**
  * bejelentkező űrlap
@@ -14,11 +16,11 @@ const loginContent = `
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Oldal</title>
+        <title>Page</title>
     </head>
     <body>
-        <h2>Belépés</h2>
-        <p>kérem adja meg az adatait a belépéshez</p>
+        <h2>Login</h2>
+        <p>Pleas add your email and password, for login</p>
         <form method="post">
             <label>Email</label>
             <br>
@@ -27,7 +29,8 @@ const loginContent = `
             <label>Password</label>
             <br>
             <input type="password" name="password" >
-            <button>Belépés</button>
+            <br>
+            <button>Login</button>
         </form>
     </body>
     
@@ -79,11 +82,41 @@ class HTTPResponse {
                 return this.send404();
         }
 
-        this.res.writeHead(200, {
-            'Content-Length': Buffer.byteLength(content),
-            'Content-Type': 'text/html'
-        });
-        this.res.end(content);
+        this.compress(content);
+    }
+
+    /**
+     * Küldés előtt tömörítjük az adatokat
+     * 1. megvizsgáljuk, hogy milyen tömörítést ismer a böngésző
+     * 2. ha támogatja akkor deflate, vagy gzip algoritmussal tömörítünk
+     * @param content - a tratalom (string)
+     */
+    compress(content) {
+        let acceptEncoding = this.req.headers['accept-encoding'] || '',
+            type = null,
+            contentStream = new Readable(); // => olvasható adatforrás
+
+        contentStream._read = () => {};
+        contentStream.push(content);
+        contentStream.push(null);
+
+
+        if (/\bdeflate\b/.test(acceptEncoding)) {
+            this.res.writeHead(200, { 'Content-Encoding':'deflate' });
+            contentStream.pipe(zlib.createDeflate()).pipe(this.res);
+        } else if (/\bgzip\b/.test(acceptEncoding)) {
+            this.res.writeHead(200, { 'Content-Encoding':'gzip' });
+            contentStream.pipe(zlib.createGzip()).pipe(this.res);
+        } else {
+            this.res.writeHead(200, {});
+            contentStream.pipe(this.res);
+        }
+
+        // this.res.writeHead(200, {
+        //     'Content-Length': Buffer.byteLength(content),
+        //     'Content-Type': 'text/html'
+        // });
+        // this.res.end(content); // ha megadjuk az end-et akkor küldi a választ a kliensnek
     }
 
     /**
@@ -118,7 +151,17 @@ class Server {
      * 7. elindítja a port figyelését
      */
     constructor() {
-        this.port = 3210;
+        // process.on("exit", (code) => {
+        //    console.log(`Process exit code is: ${code}`);
+        // });
+        //
+        // setTimeout( () => {
+        //     process.exit();
+        // }, 2000);
+
+        this.processArgs();
+
+        this.port = this.argObject.port || 3210;
         this.maxRetry = 7;
         this.retryNum = 0;
         this.retryInterval = 1500;
@@ -134,11 +177,29 @@ class Server {
     }
 
     /**
+     * Feldolgoza a process argumentumait
+     */
+    processArgs() {
+        this.args = [];
+        this.argObject = {};
+        let pair = [];
+
+        process.argv.forEach((val, index) => {
+           this.args[index] = val;
+           if (val.includes('=')) {
+               // itt felvagdostam a stringet egy objektummá, majd beleraktam az argobject-be
+                pair = val.split('=');
+                this.argObject[pair[0]] = pair[1];
+           }
+        });
+    }
+
+    /**
      * Port figyelésének megkezdése
      */
     startListening() {
         this.instance.listen(this.port, () => {
-            console.log(`my server listen is port: ${this.port}.`);
+            console.log(`my server listen is port: ${this.port}, process id is: ${process.pid}.`);
         });
     }
 
