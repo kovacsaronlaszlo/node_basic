@@ -8,6 +8,8 @@
 const http = require('http');
 const zlib = require('zlib');
 const Readable = require('stream').Readable;
+const Auth = require('./auth');
+const queryString = require('querystring');
 
 /**
  * bejelentkező űrlap
@@ -42,7 +44,6 @@ const loginContent = `
  * http kérések feldolgézása és a megfelelő válasz küldése a kliens számára.
  */
 class HTTPResponse {
-
     /**
      * beállítja az elfogadott url-ek listáját
      * @param req - kérés adatai
@@ -51,14 +52,58 @@ class HTTPResponse {
     constructor(req, res) {
         this.req = req;
         this.res = res;
-
-        this.routes = {
-            '/': 'index',
-            '/login': 'login',
-            '/logout': 'logout'
+        this.testLogin = {
+            id: 33,
+            name: 'barmi aron',
+            email: 'aron@mail.com',
+            password: 'aron'
         };
 
-        this.sendResponse();
+        this.routes = {
+            '/': {name: 'index', guard: true },
+            '/login': {name: 'login', guard: false },
+            '/logout': {name: 'logout', guard: true },
+        };
+
+        switch (this.req.method.toLowerCase()) {
+            case 'get':
+                this.sendResponse();
+                break;
+            case 'post':
+                this.handlePost();
+                break;
+            default:
+                this.send404();
+                break;
+        }
+    }
+
+    /**
+     * post kérések feldolgozása
+     */
+    handlePost() {
+        let postData = '',
+            user = {};
+
+        this.req.on('data', (chunk) => {
+           postData += chunk;
+        });
+        this.req.on('end', () => {
+            postData = queryString.parse(postData);
+            if (
+                this.req.url === '/login'
+                && postData.email === this.testLogin.email
+                && postData.password === this.testLogin.password
+            ) {
+                user.id = this.testLogin.id;
+                user.email = this.testLogin.email;
+                Auth.setCookies(this.req, this.res, user);
+                this.compress('Sikeres belépés!');
+            } else {
+                this.compress(loginContent);
+            }
+
+        });
     }
 
     /**
@@ -68,7 +113,15 @@ class HTTPResponse {
         let page = this.routes[this.req.url],
             content = '';
 
-        switch(page) {
+        if (!page || !page.name) {
+            this.send404();
+        }
+
+        if (page.guard && !Auth.isAuthenticated(this.req, this.res)) {
+            this.send401();
+        }
+
+        switch(page.name) {
             case 'index':
                 content = 'Hello in Home!';
                 break;
@@ -127,6 +180,19 @@ class HTTPResponse {
         this.res.writeHead(404, {
            'Content-Length': Buffer.byteLength(body),
            'Content-Type': 'text/plain'
+        });
+
+        this.res.end(body);
+    }
+
+    /**
+     * 401 hiba üzenet küldése
+     */
+    send401() {
+        let body = `Jelentkezzen be az oldal használatához a login oldaon!`;
+        this.res.writeHead(401, {
+            'Content-Length': Buffer.byteLength(body),
+            'Content-Type': 'text/plain'
         });
 
         this.res.end(body);
