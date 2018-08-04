@@ -14,7 +14,7 @@ class Auth {
      */
     constructor() {
         this.cookieName = 'login';
-        this.expire = 60 * 500; // 60 * 500 = 0.5 min
+        this.expire = 60* 60 * 1000; // 60 * 60 * 1000 = 1 hour
         this.jwt = new Jwt({secret:'myAwesomeWebAppForNodeBasic'});
     }
 
