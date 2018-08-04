@@ -3,7 +3,8 @@
  */
 const fs = require('fs'),
     path = require('path'),
-    config = require('./config')
+    config = require('./config'),
+    Fsm = require('./Fsm');
 
 /**
  * a logger osztály fájlokba loggolja a megadott információt
@@ -15,16 +16,13 @@ class Logger {
     constructor() {}
 
     log(message) {
-        fs.writeFile(
+        Fsm.writePromise(
             path.join(config.logDirectory, 'log.log'),
             `${new Date()} ${message}\n\r`,
-            {encoding: 'utf8', flag: 'a'},
-            (err) => {
-                if (err) {
-                    console.error('Logger error: ', err);
-                }
-            }
-        );
+            true
+        ).catch((err) => {
+            console.error(err);
+        });
     }
 }
 

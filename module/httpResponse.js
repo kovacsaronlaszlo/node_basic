@@ -6,7 +6,8 @@ const fs = require('fs'),
     path = require('path'),
     Logger = require('./logger'),
     config = require('./config'),
-    Template = require('./template');
+    Template = require('./template'),
+    DB = require('./DB');
 
 /**
  * http kérések feldolgézása és a megfelelő válasz küldése a kliens számára.
@@ -27,6 +28,7 @@ module.exports = class HTTPResponse {
             '/': {name: 'index', guard: true },
             '/login': {name: 'login', guard: false },
             '/logout': {name: 'logout', guard: true },
+            '/api/products/1': {name: 'api/products/1', guard: true}
         };
 
         switch (this.req.method.toLowerCase()) {
@@ -94,6 +96,11 @@ module.exports = class HTTPResponse {
                 break;
             case 'logout':
                 content =  'logout.html';
+                break;
+            case 'api/products/1':
+                return new DB('products').getOne(1).then( (json) => {
+                    this.json(json);
+                });
                 break;
             default:
                 return this.send404();
@@ -169,4 +176,16 @@ module.exports = class HTTPResponse {
         this.res.end(body);
     }
 
-}
+    /**
+     * JSON küldése
+     */
+    json(jsonSource) {
+        this.res.writeHead(401, {
+            'Content-Length': Buffer.byteLength(jsonSource),
+            'Content-Type': 'application/json'
+        });
+
+        this.res.end(jsonSource);
+    }
+
+};
