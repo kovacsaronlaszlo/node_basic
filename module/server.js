@@ -6,7 +6,8 @@
  * a szükséges függőségek beolvasása
  */
 const http = require('http');
-const HTTPResponse = require('./httpResponse');
+const HTTPResponse = require('./httpResponse'),
+    config = require('./config');
 
 
 /**
@@ -36,7 +37,7 @@ class Server {
 
         this.processArgs();
 
-        this.port = this.argObject.port || 3210;
+        this.port = this.argObject.port || config.defaultServerPort;
         this.maxRetry = 7;
         this.retryNum = 0;
         this.retryInterval = 1500;

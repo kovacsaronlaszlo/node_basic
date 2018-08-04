@@ -4,7 +4,9 @@ const Auth = require('./auth');
 const queryString = require('querystring');
 const fs = require('fs'),
     path = require('path'),
-    Logger = require('./logger');
+    Logger = require('./logger'),
+    config = require('./config'),
+    Template = require('./template');
 
 /**
  * http kérések feldolgézása és a megfelelő válasz küldése a kliens számára.
@@ -18,13 +20,6 @@ module.exports = class HTTPResponse {
     constructor(req, res) {
         this.req = req;
         this.res = res;
-        this.htmlPath = path.join(__dirname, 'files/html');
-        this.testLogin = {
-            id: 33,
-            name: 'barmi aron',
-            email: 'aron@mail.com',
-            password: 'aron'
-        };
 
         Logger.log(`${req.method} url: ${req.url}`);
 
@@ -61,11 +56,11 @@ module.exports = class HTTPResponse {
             postData = queryString.parse(postData);
             if (
                 this.req.url === '/login'
-                && postData.email === this.testLogin.email
-                && postData.password === this.testLogin.password
+                && postData.email === config.testLogin.email
+                && postData.password === config.testLogin.password
             ) {
-                user.id = this.testLogin.id;
-                user.email = this.testLogin.email;
+                user.id = config.testLogin.id;
+                user.email = config.testLogin.email;
                 Auth.setCookies(this.req, this.res, user);
                 this.compress('Sikeres belépés!');
             } else {
@@ -92,19 +87,19 @@ module.exports = class HTTPResponse {
 
         switch(page.name) {
             case 'index':
-                content = path.join(this.htmlPath, 'index.html');
+                content = 'index.html';
                 break;
             case 'login':
-                content = path.join(this.htmlPath, 'login.html');
+                content = 'login.html';
                 break;
             case 'logout':
-                content = path.join(this.htmlPath, 'logouthtml');
+                content =  'logout.html';
                 break;
             default:
                 return this.send404();
         }
 
-        fs.readFile(content, 'utf8', (err, fc) => {
+        new Template().getContent(content, (err, fc) => {
             if (err) {
                 console.log(err);
                 this.send404();
