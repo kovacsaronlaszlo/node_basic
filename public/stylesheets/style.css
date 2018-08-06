@@ -9,3 +9,7 @@ body {
 footer {
   padding: 7px 50px;
 }
+
+.card-login {
+  max-width: 300px;
+}

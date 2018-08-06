@@ -4,7 +4,8 @@ doctype html
 html
   head
     title= title
-    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css")
+    link(rel="stylesheet", href='/mod/bootstrap/dist/css/bootstrap.min.css')
+    link(rel="stylesheet", href='/mod/font-awesome/css/font-awesome.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
     include elements/header
@@ -14,9 +15,8 @@ html
 
     include elements/footer
 
-    script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js')
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js')
-    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js')
+    script(src='/mod/jquery/dist/jquery.min.js')
+    script(src='/mod/bootstrap/dist/js/bootstrap.min.js')
 
     block scripts
 
