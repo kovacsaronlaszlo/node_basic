@@ -1,27 +1,18 @@
 {
-  "name": "node_alapozo",
-  "version": "0.0.1",
-  "description": "node js oktató alkalmazás az alapoktól",
-  "main": "index.js",
-  "dependencies": {
-    "cookies": "0.7.1",
-    "@coolgk/jwt": "*"
-  },
+  "name": "node-alapozo",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kovacsaronlaszlo/node_basic.git"
-  },
-  "keywords": [
-    "nodejs",
-    "education"
-  ],
-  "author": "kovacsaronlaszlo",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kovacsaronlaszlo/node_basic/issues"
-  },
-  "homepage": "https://github.com/kovacsaronlaszlo/node_basic#readme"
+  "dependencies": {
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "pug": "2.0.0-beta11",
+    "cookies": "0.7.1",
+    "@coolgk/jwt": "^3.0.0"
+  }
 }
