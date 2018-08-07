@@ -13,3 +13,8 @@ footer {
 .card-login {
   max-width: 300px;
 }
+
+.span-user {
+  position: absolute;
+  right: 1em;
+}

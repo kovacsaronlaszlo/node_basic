@@ -6,8 +6,12 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var professionRouter = require('./routes/profession');
+var adminRouter = require('./routes/admin');
 var loginRouter = require('./routes/login');
+var logoutRouter = require('./routes/logout');
+
+const Auth = require('./module/auth'),
+    requireLogin = require('./middleware/requireLogin');
 
 var app = express();
 
@@ -22,10 +26,22 @@ app.use(cookieParser());
 app.use(require('./middleware/nodeStatic'));
 app.use(express.static(path.join(__dirname, 'public')));
 
+/**
+ * bejelentkezést ellenőrízése
+ */
+app.use((req, res, next) => {
+  res.locals.authenticated = Auth.isAuthenticated(req, res);
+  res.locals.user = Auth.getInfo(req, res);
+  next();
+});
+
+app.all('/admin/*', requireLogin);
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/profession', professionRouter);
+app.use('/admin', adminRouter);
 app.use('/login', loginRouter);
+app.use('/logout', logoutRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

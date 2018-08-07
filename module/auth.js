@@ -28,11 +28,11 @@ class Auth {
     }
 
     /**
-     * beállít egy sütit a böngészően
+     * beállít egy jwt tokennel titkosított sütit
      * @param req - Request -  a http kérés
      * @param res - Response - http válasz
      * @param info - Object - a a titkos üzenet
-     * @returns {*} visszatér a válasszal
+     * @returns {*} visszatér a http válasszal
      */
     setCookies(req, res, info) {
         let cookies = new Cookies(req, res);
@@ -41,9 +41,22 @@ class Auth {
     }
 
     /**
+     * kiléptetés, töröljük a sütit
+     * @param req - Request -  a http kérés
+     * @param res - Response - http válasz
+     * @returns {*} visszatér a http válasszal
+     */
+    logout(req, res) {
+        let cookies = new Cookies(req, res);
+        cookies.set(this.cookieName);
+        return res;
+    }
+
+    /**
      * Ellenőrzi a bejelnetkezés érvényességét.
      * @param req - Request - http kérés
      * @param res - Response - http válasz
+     * @returns {Boolean} egy boolean értéket ad vissza
      */
     isAuthenticated(req, res) {
         let cookies = new Cookies(req, res);
@@ -51,6 +64,19 @@ class Auth {
         let verified = this.jwt.verify(cookie);
 
         return verified !== false;
+    }
+
+    /**
+     * visszadja a tikosított infot a tokenből
+     * @param req - Request - http kérés
+     * @param res - Response - http válasz
+     * @returns {Object} egy titoksított információt ad vissza
+     */
+    getInfo(req, res) {
+        let cookies = new Cookies(req, res);
+        let cookie = cookies.get(this.cookieName);
+        let verified = this.jwt.verify(cookie);
+        return verified.data || null;
     }
 }
 
