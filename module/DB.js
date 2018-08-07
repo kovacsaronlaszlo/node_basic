@@ -16,7 +16,13 @@ module.exports = class DB {
     }
 
     getAll() {
-        return Fsm.readPromise(this.filePath);
+        return new Promise((resolve, reject) => {
+            Fsm.readPromise(this.filePath)
+                .then(list => {
+                    resolve(JSON.parse(list));
+                });
+        });
+
     }
 
     getOne(id) {
@@ -29,7 +35,7 @@ module.exports = class DB {
                         row = data[k];
                     }
                 }
-                resolve( JSON.stringify(row));
+                resolve(row);
             });
         });
     }
@@ -55,6 +61,32 @@ module.exports = class DB {
                     }
                 }
                 resolve( null);
+            });
+        });
+    }
+
+    /**
+     * Kulcsérték párok alapján visszadaja a kereset, dokumentumokat.
+     * Használata: DB.find( {name: 'vasaló'}).then...
+     * @param {Object} where - kulcs érték párokban tartalmazza a szűrő feltétlet
+     * @returns {Promise<any>} - null az érték ha nem találta, vagy a listát
+     */
+    find(where) {
+        return new Promise((resolve, reject) => {
+            Fsm.readPromise(this.filePath).then( (json) => {
+                let data = JSON.parse(json);
+                let hits = [];
+                let list =[];
+                for (let k in data) {
+                    hits = [];
+                    for (let j in where) {
+                        hits.push(data[k][j] == where[j]);
+                    }
+                    if (hits.indexOf(false) === -1) {
+                        list.push(data[k]);
+                    }
+                }
+                resolve(list);
             });
         });
     }

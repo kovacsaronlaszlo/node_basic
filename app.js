@@ -7,6 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var adminRouter = require('./routes/admin');
+var ajaxRouter = require('./routes/ajax');
 var loginRouter = require('./routes/login');
 var logoutRouter = require('./routes/logout');
 
@@ -40,6 +41,7 @@ app.all('/admin/*', requireLogin);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/admin', adminRouter);
+app.use('/ajax', ajaxRouter);
 app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
 
